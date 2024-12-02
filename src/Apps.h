@@ -44,6 +44,7 @@ public:
 // PageRank application
 class PageRank:public BaseApp{
 public:
+	double RESET_PROB = 0.15;
 	/* The message passing model in CFDGraph */
 	vector<double> Compute(int vindex, distributed_graph* dag){
 	    int numofmsg = (dag->g)->myvertex[vindex]->messages_sendout_h.size();
@@ -88,6 +89,7 @@ public:
 // Personalized PageRank application
 class PersonalPageRank :public BaseApp {
 public:
+	double RESET_PROB = 0.15;
    /* The message passing model in CFDGraph */
 	vector<double> Compute(int vindex, distributed_graph* dag) {
 		int numofmsg = (dag->g)->myvertex[vindex]->messages_sendout_h.size();

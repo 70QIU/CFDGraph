@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <map>
 #include <vector>
-#include "../utils/"
+#include "../utils/Utils.h"
 #include <string.h>
 #include <omp.h>
 extern int N_THREADS;
@@ -123,11 +123,8 @@ void distributed_graph::load_from_file(char* filename, int vertices, int edges){
 	vector<int> DC_Vnum; 
 	vector<int> DC_Vexp; 
 	vector<float> percent; 
-	if (assgin_mode == "uniform")
-		for (int i = 0; i < numofdcs; i++)
-			percent.push_back(1.0 / float(numofdcs));		
-	else if (assgin_mode == "nonuniform")
-		percent = { 0.43,0.31,0.11,0.1,0.05 };
+	
+	percent = { 0.43,0.31,0.11,0.1,0.05 };
 		
 	int sum = 0;
 	for (int i = 0; i < numofdcs; i++)

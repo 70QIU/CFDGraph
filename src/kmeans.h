@@ -199,41 +199,21 @@ public:
 		point p;
 		centroid c; 
 
-		/* assign init grouping randomly */
-		time_t start = time(NULL);
 		/*
 			If it is the first round, kmeans++ is enabled. 
 			If it is not the first round, the centroid value of the previous round is used as the initial centroid
 		*/
 		if (iter_index == 0)  
 			kpp(); 
-		if (DC_index < numofdcs)
-			cout << "DC" << DC_index << " init_centroids" <<endl;
-		else
-			cout << "DC" << DC_index - numofdcs << " init_centroids" << endl;
-		for (int i = 0; i < n_cluster; i++)
-		{
-			cout << cent[i].x << " ";
-		}
-		cout << endl;
 
-		time_t end = time(NULL);
-		cout << "Kmeans init used " << end - start << "s" << endl;
 		float sse = 0;
 		vector<float> origins(n_cluster);
 
 		for (int t = 0; t < round_num; t++)
 		{
-			time_t start_i = time(NULL);
-			if (DC_index < numofdcs) 
-				cout << "DC" << DC_index << "_out_round" << t << endl;
-			else
-				cout << "DC" << DC_index - numofdcs << "_in_round" << t << endl;
-
             #pragma omp parallel for 
 			for (int j = 0; j < pcount; j++)
 				pt[j].group = nearest(pt + j, n_cluster, 0); 
-
 			/* group element for centroids are used as counters */
 			for (c = cent, i = 0; i < n_cluster; i++, c++) {   
 				c->count = 0; 
@@ -245,24 +225,17 @@ public:
 				c->x += p->x; 
 			}
 
-			if (sigma != 0)
-				cout << setw(15) << left << "count" << setw(15) << left << "n_count" << setw(15) << left << "sum" << setw(15) << left << "n_sum" << endl;
 			// For the value of each center point, the average rank value is taken as the new center value
 			for (c = cent, i = 0; i < n_cluster; i++, c++) {
 				origins[i] = c->x / c->count;
 				if (c->count == 0)
 				{
 					c->x /= c->count;
-					cout << i << " have no points" << endl;
 					continue;
 				}
 				float noise_count = laplace_generator(0, sigma);  // perturb count
-				if (sigma != 0)
-					cout << setw(15) << left << c->count << setw(15) << left << noise_count;
 				c->count += noise_count;
 				float noise_sum = laplace_generator(0, sigma);   // perturb sum
-				if (sigma != 0)
-					cout << setw(15) << left << c->x << setw(15) << left << noise_sum << endl;
 				c->x += noise_sum;
 				c->x /= c->count;
 
@@ -271,17 +244,8 @@ public:
 					c->x = MinDiv;
 				if (c->x > MaxDiv)
 					c->x = MaxDiv;
-
 			}
-			time_t end_i = time(NULL);
-			cout << "Kmeans round " << t << " used " << end_i - start_i << "s" << endl;
-		}
-		
-		cout << setw(15) << left << "original" << setw(15) << left << "centroid" << setw(15) << left << "size" << endl;
-		for (int i = 0; i < n_cluster; i++)
-		{
-			cout << setw(15) << left << origins[i] << setw(15) << left << cent[i].x << setw(15) << left << cent[i].count << endl;
-		}
+		}		
 	}
 
 	map<int, vector<int>> Kmeans(string filename, vector<pair<int, float>> data, float budget, float maxdiv, float mindiv)
@@ -297,7 +261,6 @@ public:
 		int round_num = 5; // kmeans iteration counts
 		if (budget != 0)
 			sigma = ((MaxDiv - MinDiv + 1) * round_num) / budget;  // (r + 1)t / bgt
-		cout << "sigma: " << sigma << endl;
 		
 		lloyd(round_num, sigma);
 

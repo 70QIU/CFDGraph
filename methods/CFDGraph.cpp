@@ -25,7 +25,6 @@ extern string graphfile;
 // k-means by 70
 extern kmeans* mykmeans;
 extern int ncluster;
-extern float percent;
 
 // combiner
 extern int AGG_NUM_withNoise;
@@ -34,10 +33,10 @@ extern int AGG_NUM_withNoise;
 extern float msg_upperbound;
 
 extern float cent_bgt_percent;
-extern string assgin_mode;
+
 
 // Our proposed method CFDGraph
-void GraphEngine::CFDGraph(char* sizeofgraph){
+void GraphEngine::CFDGraph(const char* sizeofgraph){
 
 	int total_vertices = (myapp->global_graph->g)->num_vertices; 
 	const int num_vertex_locks = total_vertices;
@@ -46,6 +45,19 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 	for (int i = 0; i < num_vertex_locks; i++) 
 		omp_init_lock(&lock_vertex[i]);
     
+
+	int num_of_DC_combiner = AGG_NUM_withNoise;
+	const int num_combiner_locks = num_threads * num_threads * num_of_DC_combiner;  // À©´óµ½K¸ö
+	omp_lock_t* lock_out_combiner = new omp_lock_t[num_combiner_locks];
+
+	for (int i = 0; i < num_combiner_locks; i++)
+		omp_init_lock(&lock_out_combiner[i]);
+
+	omp_lock_t* lock_in_combiner = new omp_lock_t[num_combiner_locks];
+
+	for (int i = 0; i < num_combiner_locks; i++)
+		omp_init_lock(&lock_in_combiner[i]);
+
     /**
     * Clear memory.
     */
@@ -151,7 +163,7 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 				inter_out_degree_pair[other_dc][vid]++;
 			}
 				
-			vector<int> in_nbrs = (myapp->global_graph->g)->myvertex[vid]->in_neighbour;/			
+			vector<int> in_nbrs = (myapp->global_graph->g)->myvertex[vid]->in_neighbour;		
 			for (int nid = 0; nid < in_nbrs.size(); nid++) 
 			{
 				int other_dc = (myapp->global_graph->g)->myvertex[in_nbrs[nid]]->location_id; 
@@ -216,7 +228,6 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 	vector<vector<int>> common_bit_width(num_threads);  
 	for (int i = 0; i < num_threads; i++)
 	{
-		freq[i].resize(num_threads);
 		global_to_local[i].resize(total_vertices);
 		local_to_global[i].resize(num_threads);
 		id_to_vertex[i].resize(num_threads);
@@ -261,7 +272,7 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 		{
 			if (i == j)
 				continue;
-			common_bit_width[i][j] = log2(nextPowerOfTwo(common_id[i][j]));
+			common_bit_width[i][j] = log2(utils::nextPowerOfTwo(common_id[i][j]));
 		}
 	}
 
@@ -279,10 +290,10 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 				continue;
 			for (int k = 0; k < common_id[i][j]; k++) {
 				int vertex_id = id_to_vertex[i][j][k];
-				string code = toBinaryString(k, common_bit_width[i][j]);
+				string code = utils::toBinaryString(k, common_bit_width[i][j]);
 				int code_len = int(code.length());
 
-				unsigned int codeint = toUnsignedInt(code); 
+				unsigned int codeint = utils::toUnsignedInt(code);
 				global_to_local[j][vertex_id] = { codeint, code_len };
 				local_to_global[i][j][code] = vertex_id;
 				code_size += code.length() * 0.000000125f + 0.000004f;
@@ -379,8 +390,6 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 				hits_h_norm = 0.0;
 				vector<double> hits_a_each(total_vertices);
 				vector<double> hits_h_each(total_vertices);
-				P_MAX = 0.0;
-				Q_MAX = 0.0;
 				for (int tr = 0; tr < num_threads; tr++) {
 					if ((myapp->ITERATIONS - iter_counter) == 0 && (myapp->mytype == hits || myapp->mytype == salsa))
 					{
@@ -802,15 +811,13 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 								delete p;
 
 								float new_msg = localkmeans[tr]->cent[group].x;
-								cout << setw(15) << left << avg_msg << setw(15) << left << new_msg << endl;
-
 								// distribute the message
 								int vertex_counts = out_agg_indexes[tr][iter_gg->first][si];								
                                 #pragma omp parallel for  
 								for (long int nid = 0; nid < vertex_counts; nid++) {
 
 									pair<unsigned int, int> codepair = DCs[tr]->out_k_aggregators[iter_gg->first][si]->num_list[nid];
-									string other_vertex_string = toBinaryString(codepair.first, codepair.second);
+									string other_vertex_string = utils::toBinaryString(codepair.first, codepair.second);
 									int other_vertex = local_to_global[iter_gg->first][tr][other_vertex_string]; 
 									VertexData* l_accum;
 									if (myapp->mytype == pagerank)
@@ -885,7 +892,7 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
                                     #pragma omp parallel for 
 									for (long int nid = 0; nid < vertex_counts; nid++) {
 										pair<unsigned int, int> codepair = DCs[tr]->in_k_aggregators[iter_gg->first][si]->num_list[nid];
-										string other_vertex_string = toBinaryString(codepair.first, codepair.second);
+										string other_vertex_string = utils::toBinaryString(codepair.first, codepair.second);
 										int other_vertex = local_to_global[iter_gg->first][tr][other_vertex_string]; 
 										VertexData* l_accum;
 										if (myapp->mytype == hits) {
@@ -1376,13 +1383,13 @@ void GraphEngine::CFDGraph(char* sizeofgraph){
 			map<int, int> baseline, baseline_h;
 			string datafile_1;
 			if (myapp->mytype == hits)
-				datafile = graphfile + "/" + assgin_mode + "/hits_";
+				datafile = graphfile + "/hits_";
 			else if (myapp->mytype == salsa)
-				datafile = graphfile + "/" + assgin_mode + "/salsa_";
+				datafile = graphfile + "/salsa_";
 			else if (myapp->mytype == pagerank)
-				datafile = graphfile + "/" + assgin_mode + "/pagerank_";
+				datafile = graphfile + "/pagerank_";
 			else if (myapp->mytype == personalpagerank)
-				datafile = graphfile + "/" + assgin_mode + "/personalpagerank_";
+				datafile = graphfile + "/personalpagerank_";
 			datafile += sizeofgraph;
 			datafile_1 += datafile;
 			datafile += "_a_top";

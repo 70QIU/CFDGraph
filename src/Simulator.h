@@ -43,8 +43,8 @@ public:
 	GraphEngine(EngineType t, int n){
 		type = t; num_threads = n; 		
 	}
-	void Pregel(char*);
-	void CFDGraph(char*);
+	void Pregel(const char*);
+	void CFDGraph(const char*);
 
 };
 #endif

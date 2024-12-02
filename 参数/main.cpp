@@ -4,6 +4,8 @@
 #include <time.h>  
 #include <string.h>
 #include "src/kmeans.h"
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
 
 /*
 	Created by Qiulin Wu on 2024-12-02.
@@ -23,6 +25,7 @@ int bits;
 int ncluster;
 string MAP_GRAPH;
 
+
 int BASELINE;
 string graphfile;
 
@@ -32,9 +35,6 @@ float msg_upperbound;
 // budget assignment
 float cent_bgt_percent;
 
-string algorithm;
-string method;
-
 int main(int argc, char* argv[])
 {
 	char str[50];
@@ -42,34 +42,51 @@ int main(int argc, char* argv[])
 	strftime(str, 50, "%x %X", localtime(&now));
 	std::cout << str << std::endl;
 
-	graphfile = argv[1];
-	algorithm = argv[2];
-	int numpoint = atoi(argv[3]);
-	int Max_Iteration = atoi(argv[4]);
-	N_THREADS = atoi(argv[5]);
-	noise_budget = atof(argv[6]);
+	string dataset, size, algorithm, privacy, method;
+	int iteration, thread_num, combiner_num, baseline, kmeans_bits;
+	float budget, upperbound;
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("dataset,d", po::value<string>(&dataset), "Set dataset")
+		("size,n", po::value<string>(&size), "Set graph size")
+		("algorithm,a", po::value<string>(&algorithm), "Set graph algorithm")
+		("iteration,i", po::value<int>(&iteration), "Set number of iteration")
+		("budget,b", po::value<float>(&budget), "Set budget")
+		("thread_num,t", po::value<int>(&thread_num), "Set number of threads")
+		("privacy,p", po::value<string>(&privacy), "Set privacy")
+		("method,m", po::value<string>(&method), "Set method")
+		("combiner_num,c", po::value<int>(&combiner_num), "Set number of combiners")
+		("baseline,base", po::value<int>(&baseline), "Set status of output baseline")
+		("kmeans_bits,k", po::value<int>(&kmeans_bits), "Set bits of kmeans")
+		("upperbound,u", po::value<float>(&upperbound), "Set upperbound");
 
-	if (strcmp(argv[7], "privacy") == 0)
+	po::variables_map vm;
+	po::store(po::parse_command_line(argc, argv, desc), vm);
+	po::notify(vm);
+
+	int numpoint = atoi(size.c_str());
+	bits = kmeans_bits;
+	ncluster = pow(2, bits);
+	msg_upperbound = upperbound;
+	N_THREADS = thread_num;
+	
+	BASELINE = baseline;
+	graphfile = dataset;
+	int Max_Iteration = iteration;
+	noise_budget = budget;
+	AGG_NUM_withNoise = combiner_num;
+	if (privacy == "privacy")
 		privacy = true;
 	else privacy = false;
 
-	method = argv[8];	
-	AGG_NUM_withNoise = atoi(argv[9]);
-	BASELINE = int(atof(argv[10]));
-
-	bits = atoi(argv[11]);
-	ncluster = pow(2, bits);
-
-	msg_upperbound = stof(argv[12]);
-
-	MAP_GRAPH = "Notmap";
-	cent_bgt_percent = 0.5;
-	numofdcs = 5;  
+	cent_bgt_percent = 0.5;	
+	numofdcs = 5;
+	MAP_GRAPH = "nomap";
 
 	std::vector<DataCenter*> DCs;
 	vector<int> pri_rank_arrs(numofdcs);
 	pri_rank_arrs = { 2,3,1,3,3 };
-
+	
 	srand(time(NULL));
 
 	for (int i = 0; i < numofdcs; i++) {
@@ -103,8 +120,6 @@ int main(int argc, char* argv[])
 	}
 		
 	
-	
-	
 	distributed_graph* dag = new distributed_graph();
 	
 	if (graphfile == "bitcoinotc") {
@@ -121,8 +136,6 @@ int main(int argc, char* argv[])
 	}
 
 	
-	
-
 	 
 	BaseApp* myapp;
 	if (algorithm == "pagerank"){
@@ -158,8 +171,10 @@ int main(int argc, char* argv[])
 			(dag->g)->myvertex[v]->accum = new salsaVertexData();
 		}
 		printf("Use the salsa application.\n");
-	}	
+	}
+	
 
+	myapp->budget = budget;
 	myapp->ITERATIONS = Max_Iteration;
 	myapp->global_graph = dag;
 	
@@ -172,9 +187,9 @@ int main(int argc, char* argv[])
 	
 
 	if (method == "pregel")
-		engine->Pregel(argv[3]);
+		engine->Pregel(size.c_str());
 	else if (method == "cfdgraph")
-		engine->CFDGraph(argv[3]);
+		engine->CFDGraph(size.c_str());
 
 	time_t end = time(NULL);
 	strftime(str, 50, "%x %X", localtime(&end));

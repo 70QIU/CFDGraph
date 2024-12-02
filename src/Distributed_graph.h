@@ -12,10 +12,6 @@
 #include <algorithm>
 #include <iomanip>
 
-#define B 2.5 //clamping parameter
-#define NLATENT 5 
-#define LAMBDA 0.045
-
 /*
 	Created by Qiulin Wu on 2024-12-02.
 */

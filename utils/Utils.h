@@ -9,6 +9,7 @@
 #include <ctime>
 #include <random>
 #include <map>
+#include <bitset>
 #include "../src/Distributed_graph.h"
 namespace utils {
 
@@ -19,6 +20,6 @@ namespace utils {
 	// For reindexing
 	unsigned int nextPowerOfTwo(unsigned int n);
 	string toBinaryString(unsigned int n, int bitWidth);
-	unsigned int toUnsignedInt(string binaryStr)
+	unsigned int toUnsignedInt(string binaryStr);
 }
 #endif //UTILS_H

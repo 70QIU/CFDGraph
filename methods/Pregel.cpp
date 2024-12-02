@@ -19,10 +19,10 @@ extern bool privacy;
 extern double PR_MAX;
 extern double PR_MIN;
 
-extern string assgin_mode;
+
 extern string graphfile; 
 
-void GraphEngine::Pregel(char* sizeofgraph){
+void GraphEngine::Pregel(const char* sizeofgraph){
 	int total_vertices = (myapp->global_graph->g)->num_vertices;
 	const int num_vertex_locks = total_vertices;
 	omp_lock_t* lock_vertex = new omp_lock_t[num_vertex_locks];
@@ -166,8 +166,6 @@ void GraphEngine::Pregel(char* sizeofgraph){
 				vector<double> hits_a_each(total_vertices);
 				vector<double> hits_h_each(total_vertices);
 
-				P_MAX = 0.0;
-				Q_MAX = 0.0;
 				for (int tr = 0; tr < num_threads; tr++) {
 					if ((myapp->ITERATIONS - iter_counter) == 0 && (myapp->mytype == hits || myapp->mytype == salsa))
 					{
@@ -441,7 +439,7 @@ void GraphEngine::Pregel(char* sizeofgraph){
 		string datafile;
 		if (BASELINE)   
 		{
-			datafile = graphfile + "/" + assgin_mode + "/pagerank_";
+			datafile = graphfile + "/pagerank_";
 			datafile += sizeofgraph;
 			datafile += ".txt";
 		}
@@ -465,7 +463,7 @@ void GraphEngine::Pregel(char* sizeofgraph){
 		string datafile;
 		if (BASELINE)   
 		{
-			datafile = graphfile + "/" + assgin_mode + "/personalpagerank_";
+			datafile = graphfile + "/personalpagerank_";
 			datafile += sizeofgraph;
 			datafile += ".txt";
 		}
@@ -490,9 +488,9 @@ void GraphEngine::Pregel(char* sizeofgraph){
 		{
 
 			if (myapp->mytype == hits)
-				datafile = graphfile + "/" + assgin_mode + "/hits_";
+				datafile = graphfile + "/hits_";
 			else if (myapp->mytype == salsa)
-				datafile = graphfile + "/" + assgin_mode + "/salsa_";
+				datafile = graphfile + "/salsa_";
 			datafile += sizeofgraph;
 			datafile += "_a.txt";
 		}
@@ -530,9 +528,9 @@ void GraphEngine::Pregel(char* sizeofgraph){
 			if (BASELINE)   
 			{
 				if (myapp->mytype == hits)
-					datafile = graphfile + "/" + assgin_mode + "/hits_";
+					datafile = graphfile + "/hits_";
 				else if (myapp->mytype == salsa)
-					datafile = graphfile + "/" + assgin_mode + "/salsa_";
+					datafile = graphfile + "/salsa_";
 				datafile += sizeofgraph;
 				datafile += "_h.txt";
 			}
@@ -864,13 +862,13 @@ void GraphEngine::Pregel(char* sizeofgraph){
 			if (BASELINE)  
 			{
 				if (myapp->mytype == pagerank)
-					datafile = graphfile + "/" + assgin_mode + "/pagerank_";
+					datafile = graphfile + "/pagerank_";
 				else if (myapp->mytype == personalpagerank)
-					datafile = graphfile + "/" + assgin_mode + "/personalpagerank_";
+					datafile = graphfile + "/personalpagerank_";
 				else if (myapp->mytype == hits)
-					datafile = graphfile + "/" + assgin_mode + "/hits_";
+					datafile = graphfile + "/hits_";
 				else if (myapp->mytype == salsa)
-					datafile = graphfile + "/" + assgin_mode + "/salsa_";
+					datafile = graphfile + "/salsa_";
 				datafile += sizeofgraph;
 				datafile += "_a_top" + tp_file[ic];
 			}
@@ -887,13 +885,13 @@ void GraphEngine::Pregel(char* sizeofgraph){
 			if (BASELINE)  
 			{
 				if (myapp->mytype == pagerank)
-					datafile = graphfile + "/" + assgin_mode + "/pagerank_";
+					datafile = graphfile + "/pagerank_";
 				else if (myapp->mytype == personalpagerank)
-					datafile = graphfile + "/" + assgin_mode + "/personalpagerank_";
+					datafile = graphfile + "/personalpagerank_";
 				else if (myapp->mytype == hits)
-					datafile = graphfile + "/" + assgin_mode + "/hits_";
+					datafile = graphfile + "//hits_";
 				else if (myapp->mytype == salsa)
-					datafile = graphfile + "/" + assgin_mode + "/salsa_";
+					datafile = graphfile + "/salsa_";
 				datafile += sizeofgraph;
 				datafile += "_h_top" + tp_file[ic];
 			}
@@ -913,13 +911,13 @@ void GraphEngine::Pregel(char* sizeofgraph){
 			//string datafile;
 			string datafile_1;
 			if (myapp->mytype == hits)
-				datafile = graphfile + "/" + assgin_mode + "/hits_";
+				datafile = graphfile + "/hits_";
 			else if (myapp->mytype == salsa)
-				datafile = graphfile + "/" + assgin_mode + "/salsa_";
+				datafile = graphfile + "/salsa_";
 			else if (myapp->mytype == pagerank)
-				datafile = graphfile + "/" + assgin_mode + "/pagerank_";
+				datafile = graphfile + "/pagerank_";
 			else if (myapp->mytype == personalpagerank)
-				datafile = graphfile + "/" + assgin_mode + "/personalpagerank_";
+				datafile = graphfile + "/personalpagerank_";
 			datafile += sizeofgraph;
 			datafile_1 += datafile;
 			datafile += "_a_top";
