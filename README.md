@@ -22,7 +22,7 @@ make
 We provide an example of running the PageRank algorithm on Bitcoin-Alpha graph using CFDGraph, just execute the following command.
 
 ```bash
-sh baseline.sh
+sh run.sh
 ```
 Modify the file baseline.sh and run.sh to change the dataset you want to execute on. 
 
