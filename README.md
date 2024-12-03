@@ -3,7 +3,7 @@
     CFDGraph
 </h1>
 <p align="center">
-    A Privacy-Preserving Graph Processing System for Large-Scale Collaborative Fraud Detection
+    A C++ library for Large-Scale Collaborative Fraud Detection
 </p>
 
 
